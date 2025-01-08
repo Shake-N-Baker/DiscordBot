@@ -22,8 +22,9 @@ public class IanBot {
 
     public static void main(String[] args) {
         String testServerId = "1112230651681308822";
-//        String fuzzyServerId = "270639436037881866";
-        String ianBotToken = "MTMyMzc2NzkxNDU1NzQ3Njg2NQ.G5OvNP.aHAyCqppyCz0hsKteGE33WwaOwx0tm1lrEKvbk";
+        String fuzzyServerId = "270639436037881866";
+        // Do not upload below token
+        String ianBotToken = "putDiscordBotTokenHere";
 
         mongoClient = MongoClients.create(
                 MongoClientSettings
@@ -49,10 +50,10 @@ public class IanBot {
         if (testGuild != null) {
             testGuild.updateCommands().addCommands(getCommands()).queue();
         }
-//        Guild guild = jda.getGuildById(fuzzyServerId);
-//        if (guild != null) {
-//            guild.updateCommands().addCommands(getCommands()).queue();
-//        }
+        Guild guild = jda.getGuildById(fuzzyServerId);
+        if (guild != null) {
+            guild.updateCommands().addCommands(getCommands()).queue();
+        }
     }
 
     @NotNull
