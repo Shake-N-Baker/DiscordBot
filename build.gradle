@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+def jdaVersion = '5.2.2'
+
+dependencies {
+    testImplementation group: 'junit', name: 'junit', version: '4.13.1'
+    implementation("net.dv8tion:JDA:$jdaVersion") {
+        // Optionally disable audio natives to reduce jar size by excluding `opus-java`
+        // Gradle DSL:
+        // exclude module: 'opus-java'
+        // Kotlin DSL:
+        // exclude(module="opus-java")
+    }
+    implementation 'org.mongodb:mongodb-driver-sync:5.2.1'
+}
