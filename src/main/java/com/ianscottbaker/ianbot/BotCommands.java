@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +15,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class BotCommands extends ListenerAdapter {
     public static String IANTEST_COMMAND = "iantest";
+    public static String SAY_COMMAND = "say";
     public static String CLAIM_POINTS_COMMAND = "claim_points";
     public static String BLACKJACK_COMMAND = "blackjack";
 
@@ -42,8 +44,16 @@ public class BotCommands extends ListenerAdapter {
                 event.reply(String.format("name: %s, id: %s, points: %d, mongoDB JSON: %s", eventUserName, eventUserId, ibUser.getPoints(), rawDatabaseUser.toJson())).setEphemeral(true).queue();
             }
             return;
-        } else
-            if (event.getName().equals(CLAIM_POINTS_COMMAND)) {
+        } else if (event.getName().equals(SAY_COMMAND)) {
+            OptionMapping sayMapping = event.getOption("say");
+            if (sayMapping == null) {
+                event.reply("Please provide a valid say command").setEphemeral(true).queue();
+                return;
+            }
+            String say = sayMapping.getAsString();
+            event.reply(say).setEphemeral(false).queue();
+            return;
+        } else if (event.getName().equals(CLAIM_POINTS_COMMAND)) {
             ClaimPoints.execute(event, ibUser, userCollection, updateQuery, updateOptions);
             return;
         } else if (event.getName().equals(BLACKJACK_COMMAND)) {

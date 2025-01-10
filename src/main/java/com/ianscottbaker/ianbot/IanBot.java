@@ -23,8 +23,6 @@ public class IanBot {
     public static void main(String[] args) {
         String testServerId = "1112230651681308822";
         String fuzzyServerId = "270639436037881866";
-        // Do not upload below token
-        String ianBotToken = "putDiscordBotTokenHere";
 
         mongoClient = MongoClients.create(
                 MongoClientSettings
@@ -35,7 +33,7 @@ public class IanBot {
 
         JDA jda = null;
         try {
-            jda = JDABuilder.createDefault(ianBotToken)
+            jda = JDABuilder.createDefault(Tokens.ianBotToken)
                     .addEventListeners(new BotCommands())
                     .build().awaitReady();
         } catch (InterruptedException interruptedException) {
@@ -61,10 +59,10 @@ public class IanBot {
         List<CommandDataImpl> commands = new ArrayList<>();
         CommandDataImpl ianTestCommand = new CommandDataImpl(IANTEST_COMMAND, "debug command");
         CommandDataImpl claimPointsCommand = new CommandDataImpl(CLAIM_POINTS_COMMAND, "claim free points once a day");
-        CommandDataImpl blackjackCommand = getBlackjackCommand();
         commands.add(ianTestCommand);
         commands.add(claimPointsCommand);
-        commands.add(blackjackCommand);
+        commands.add(getBlackjackCommand());
+        commands.add(getSayCommand());
         return commands;
     }
 
@@ -80,5 +78,13 @@ public class IanBot {
         blackjackOption.addChoice("split", "split");
         blackjackCommand.addOptions(blackjackOption);
         return blackjackCommand;
+    }
+
+    @NotNull
+    private static CommandDataImpl getSayCommand() {
+        CommandDataImpl sayCommand = new CommandDataImpl(SAY_COMMAND, "say something");
+        OptionData sayOption = new OptionData(OptionType.STRING, "say", "what to say", true);
+        sayCommand.addOptions(sayOption);
+        return sayCommand;
     }
 }
