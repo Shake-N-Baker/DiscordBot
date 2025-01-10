@@ -34,7 +34,7 @@ public class IanBot {
         JDA jda = null;
         try {
             jda = JDABuilder.createDefault(Tokens.ianBotToken)
-                    .addEventListeners(new BotCommands())
+                    .addEventListeners(new BotCommands(), new ButtonInteractions())
                     .build().awaitReady();
         } catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();

@@ -3,10 +3,8 @@ package com.ianscottbaker.ianbot.command;
 import com.ianscottbaker.ianbot.model.IBUser;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -14,6 +12,8 @@ import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
 
 public class Blackjack {
+    public static final String HIT_BUTTON_ID = "blackjack-hit";
+    public static final String STAY_BUTTON_ID = "blackjack-stay";
     // game state representation:
     // Full vs Short
     // 2=2
@@ -44,12 +44,11 @@ public class Blackjack {
         }
 
         String interaction = interactionMapping.getAsString();
-        MessageChannelUnion messageChannelUnion = event.getChannel();
-        Button addButton = Button.success("addId", "add");
-        Button removeButton = Button.danger("removeId", "remove");
+        Button hitButton = Button.success(HIT_BUTTON_ID, "hit");
+        Button stayButton = Button.danger(STAY_BUTTON_ID, "stay");
         MessageCreateData messageCreateData = new MessageCreateBuilder()
                 .addContent(String.format("interaction: %s", interaction))
-                .setActionRow(addButton, removeButton)
+                .setActionRow(hitButton, stayButton)
                 .build();
         event.reply(messageCreateData).setEphemeral(true).queue();
     }
