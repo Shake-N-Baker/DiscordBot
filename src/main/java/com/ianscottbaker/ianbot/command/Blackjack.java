@@ -33,7 +33,7 @@ public class Blackjack {
     // i.e. game start, player gets 4 and J, dealer
     public static void execute(@NotNull SlashCommandInteractionEvent event,
                                @NotNull IBUser ibUser,
-                               @NotNull MongoCollection<Document> userCollection,
+                               @NotNull MongoCollection<IBUser> userCollection,
                                Document updateQuery,
                                UpdateOptions updateOptions
     ) {

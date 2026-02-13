@@ -10,47 +10,56 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.ianscottbaker.ianbot.BotCommands.*;
 
 public class IanBot {
     public static MongoClient mongoClient;
+    private static final Logger logger = LoggerFactory.getLogger(IanBot.class);
 
     public static void main(String[] args) {
         String testServerId = "1112230651681308822";
         String fuzzyServerId = "270639436037881866";
+        List<String> serverIds = new ArrayList<>(Arrays.asList(fuzzyServerId, testServerId));
 
+        // Default codec registry to serialize / deserialize between BSON and POJO. Add custom serialization codecs below
+        // https://www.mongodb.com/docs/drivers/java/sync/v5.2/fundamentals/data-formats/codecs/#default-codec-registry
+        CodecRegistry pojoCodecRegistry = CodecRegistries.fromRegistries(
+                MongoClientSettings.getDefaultCodecRegistry());
         mongoClient = MongoClients.create(
                 MongoClientSettings
                         .builder()
                         .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+                        .codecRegistry(pojoCodecRegistry)
                         .build()
         );
 
-        JDA jda = null;
+        JDA jda;
         try {
-            jda = JDABuilder.createDefault(Tokens.ianBotToken)
+            jda = JDABuilder.createDefault(Tokens.IAN_BOT_TOKEN)
                     .addEventListeners(new BotCommands(), new ButtonInteractions())
                     .build().awaitReady();
         } catch (InterruptedException interruptedException) {
-            interruptedException.printStackTrace();
-        }
-        if (jda == null) {
-            System.out.println("JDA was null, terminating");
+            logger.error("An error occurred while initializing JDA", interruptedException);
             return;
         }
 
-        Guild testGuild = jda.getGuildById(testServerId);
-        if (testGuild != null) {
-            testGuild.updateCommands().addCommands(getCommands()).queue();
-        }
-        Guild guild = jda.getGuildById(fuzzyServerId);
-        if (guild != null) {
-            guild.updateCommands().addCommands(getCommands()).queue();
+        for (String serverId : serverIds) {
+            Guild guild = jda.getGuildById(serverId);
+            if (guild != null) {
+                guild.updateCommands().addCommands(getCommands()).queue();
+            } else {
+                logger.warn("Could not find serverId: {}", serverId);
+            }
         }
     }
 

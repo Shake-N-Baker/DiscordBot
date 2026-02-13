@@ -11,16 +11,19 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 import java.util.Random;
 
+//import static com.mongodb.client.model.Filters.eq;
+
 public class ClaimPoints {
     public static int MIN_CLAIM_POINTS = 5;
     public static int MAX_CLAIM_POINTS = 10;
 
     public static void execute(@NotNull SlashCommandInteractionEvent event,
                                @NotNull IBUser ibUser,
-                               @NotNull MongoCollection<Document> userCollection,
+                               @NotNull MongoCollection<IBUser> userCollection,
                                Document updateQuery,
                                UpdateOptions updateOptions
     ) {
+//        String eventUserId = event.getUser().getId();
         int currentTime = (int) Instant.now().getEpochSecond();
         int lastTime = ibUser.getLastFreeClaimTime();
         if (currentTime - lastTime < 86400) {
@@ -37,6 +40,7 @@ public class ClaimPoints {
         ibUser.setLastFreeClaimTime(currentTime);
         Bson updates = ibUser.getDatabaseUpdates();
         userCollection.updateOne(updateQuery, updates, updateOptions);
+//        userCollection.replaceOne(eq("discordId", eventUserId), ibUser); // incl updateOptions
 
         event.reply(String.format("You've claimed %d points! You now have %d points", claimPoints, newPoints)).setEphemeral(true).queue();
     }

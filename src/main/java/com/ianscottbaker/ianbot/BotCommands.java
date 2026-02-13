@@ -23,14 +23,11 @@ public class BotCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String eventUserName = event.getUser().getGlobalName();
         String eventUserId = event.getUser().getId();
-        MongoCollection<Document> userCollection = IanBot.mongoClient.getDatabase("ianbot").getCollection("user");
-        Document rawDatabaseUser = userCollection.find(eq("discordId", eventUserId)).first();
-        IBUser ibUser = null;
-        if (rawDatabaseUser == null) {
+        MongoCollection<IBUser> userCollection = IanBot.mongoClient.getDatabase("ianbot").getCollection("user", IBUser.class);
+        IBUser ibUser = userCollection.find(eq("discordId", eventUserId)).first();
+        if (ibUser == null) {
             // No user found, insert a new user in the database
             ibUser = new IBUser(eventUserId);
-        } else {
-            ibUser = new IBUser(rawDatabaseUser);
         }
         // Query and options for updating/inserting user in/into database
         Document updateQuery = new Document().append("discordId", eventUserId);
@@ -38,11 +35,8 @@ public class BotCommands extends ListenerAdapter {
         UpdateOptions updateOptions = new UpdateOptions().upsert(true);
 
         if (event.getName().equals(IANTEST_COMMAND)) {
-            if (rawDatabaseUser == null) {
-                event.reply(String.format("name: %s, id: %s, points: %d", eventUserName, eventUserId, ibUser.getPoints())).setEphemeral(true).queue();
-            } else {
-                event.reply(String.format("name: %s, id: %s, points: %d, mongoDB JSON: %s", eventUserName, eventUserId, ibUser.getPoints(), rawDatabaseUser.toJson())).setEphemeral(true).queue();
-            }
+            event.reply(String.format("name: %s, id: %s, points: %d", eventUserName, eventUserId, ibUser.getPoints())).setEphemeral(true).queue();
+//            event.reply(String.format("name: %s, id: %s, points: %d, mongoDB JSON: %s", eventUserName, eventUserId, ibUser.getPoints(), ibUser.toJson())).setEphemeral(true).queue();
             return;
         } else if (event.getName().equals(SAY_COMMAND)) {
             OptionMapping sayMapping = event.getOption("say");
