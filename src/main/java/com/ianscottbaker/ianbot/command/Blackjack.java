@@ -10,7 +10,10 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Blackjack {
     public static final String HIT_BUTTON_ID = "blackjack-hit";
     public static final String STAY_BUTTON_ID = "blackjack-stay";
@@ -31,11 +34,14 @@ public class Blackjack {
     // Ace=A
     // player hand, dealer hand
     // i.e. game start, player gets 4 and J, dealer
-    public static void execute(@NotNull SlashCommandInteractionEvent event,
-                               @NotNull IBUser ibUser,
-                               @NotNull MongoCollection<Document> userCollection,
-                               Document updateQuery,
-                               UpdateOptions updateOptions
+
+    @Autowired
+    private MongoCollection<Document> userCollection;
+
+    public void execute(@NotNull SlashCommandInteractionEvent event,
+                        @NotNull IBUser ibUser,
+                        Document updateQuery,
+                        UpdateOptions updateOptions
     ) {
         OptionMapping interactionMapping = event.getOption("interaction");
         if (interactionMapping == null) {

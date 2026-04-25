@@ -7,19 +7,24 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Random;
 
+@Component
 public class ClaimPoints {
     public static int MIN_CLAIM_POINTS = 5;
     public static int MAX_CLAIM_POINTS = 10;
 
-    public static void execute(@NotNull SlashCommandInteractionEvent event,
-                               @NotNull IBUser ibUser,
-                               @NotNull MongoCollection<Document> userCollection,
-                               Document updateQuery,
-                               UpdateOptions updateOptions
+    @Autowired
+    private MongoCollection<Document> userCollection;
+
+    public void execute(@NotNull SlashCommandInteractionEvent event,
+                        @NotNull IBUser ibUser,
+                        Document updateQuery,
+                        UpdateOptions updateOptions
     ) {
         int currentTime = (int) Instant.now().getEpochSecond();
         int lastTime = ibUser.getLastFreeClaimTime();

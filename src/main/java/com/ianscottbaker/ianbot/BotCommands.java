@@ -10,20 +10,31 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import static com.mongodb.client.model.Filters.eq;
 
+@Component
 public class BotCommands extends ListenerAdapter {
     public static String IANTEST_COMMAND = "iantest";
     public static String SAY_COMMAND = "say";
     public static String CLAIM_POINTS_COMMAND = "claim_points";
     public static String BLACKJACK_COMMAND = "blackjack";
 
+    @Autowired
+    private MongoCollection<Document> userCollection;
+
+    @Autowired
+    private ClaimPoints claimPoints;
+
+    @Autowired
+    private Blackjack blackjack;
+
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String eventUserName = event.getUser().getGlobalName();
         String eventUserId = event.getUser().getId();
-        MongoCollection<Document> userCollection = IanBot.mongoClient.getDatabase("ianbot").getCollection("user");
         Document rawDatabaseUser = userCollection.find(eq("discordId", eventUserId)).first();
         IBUser ibUser = null;
         if (rawDatabaseUser == null) {
@@ -54,10 +65,10 @@ public class BotCommands extends ListenerAdapter {
             event.reply(say).setEphemeral(false).queue();
             return;
         } else if (event.getName().equals(CLAIM_POINTS_COMMAND)) {
-            ClaimPoints.execute(event, ibUser, userCollection, updateQuery, updateOptions);
+            claimPoints.execute(event, ibUser, updateQuery, updateOptions);
             return;
         } else if (event.getName().equals(BLACKJACK_COMMAND)) {
-            Blackjack.execute(event, ibUser, userCollection, updateQuery, updateOptions);
+            blackjack.execute(event, ibUser, updateQuery, updateOptions);
             return;
         }
         event.reply("Something went wrong!").setEphemeral(true).queue();

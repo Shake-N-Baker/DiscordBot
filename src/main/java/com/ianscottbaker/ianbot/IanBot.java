@@ -1,61 +1,62 @@
 package com.ianscottbaker.ianbot;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.internal.interactions.CommandDataImpl;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.ianscottbaker.ianbot.BotCommands.*;
 
-public class IanBot {
-    public static MongoClient mongoClient;
+@SpringBootApplication
+public class IanBot implements ApplicationListener<ContextRefreshedEvent> {
 
-    public static void main(String[] args) {
-        String testServerId = "1112230651681308822";
-        String fuzzyServerId = "270639436037881866";
+    @Autowired
+    private BotCommands botCommands;
 
-        mongoClient = MongoClients.create(
-                MongoClientSettings
-                        .builder()
-                        .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-                        .build()
-        );
+    @Autowired
+    private ButtonInteractions buttonInteractions;
 
-        JDA jda = null;
+    private JDA jda;
+
+    public static final String TEST_SERVER_ID = "1112230651681308822";
+    public static final String FUZZY_SERVER_ID = "270639436037881866";
+
+    @PostConstruct
+    public void initialize() {
+        // This method will be called after Spring has initialized all beans
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
         try {
             jda = JDABuilder.createDefault(Tokens.ianBotToken)
-                    .addEventListeners(new BotCommands(), new ButtonInteractions())
+                    .addEventListeners(botCommands, buttonInteractions)
                     .build().awaitReady();
+
+            Guild testGuild = jda.getGuildById(TEST_SERVER_ID);
+            if (testGuild != null) {
+                testGuild.updateCommands().addCommands(getCommands()).queue();
+            }
+            Guild guild = jda.getGuildById(FUZZY_SERVER_ID);
+            if (guild != null) {
+                guild.updateCommands().addCommands(getCommands()).queue();
+            }
         } catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }
-        if (jda == null) {
-            System.out.println("JDA was null, terminating");
-            return;
-        }
-
-        Guild testGuild = jda.getGuildById(testServerId);
-        if (testGuild != null) {
-            testGuild.updateCommands().addCommands(getCommands()).queue();
-        }
-        Guild guild = jda.getGuildById(fuzzyServerId);
-        if (guild != null) {
-            guild.updateCommands().addCommands(getCommands()).queue();
-        }
     }
 
-    @NotNull
-    private static List<CommandDataImpl> getCommands() {
+    private List<CommandDataImpl> getCommands() {
         List<CommandDataImpl> commands = new ArrayList<>();
         CommandDataImpl ianTestCommand = new CommandDataImpl(IANTEST_COMMAND, "debug command");
         CommandDataImpl claimPointsCommand = new CommandDataImpl(CLAIM_POINTS_COMMAND, "claim free points once a day");
@@ -66,8 +67,7 @@ public class IanBot {
         return commands;
     }
 
-    @NotNull
-    private static CommandDataImpl getBlackjackCommand() {
+    private CommandDataImpl getBlackjackCommand() {
         CommandDataImpl blackjackCommand = new CommandDataImpl(BLACKJACK_COMMAND, "play blackjack");
         OptionData blackjackOption = new OptionData(OptionType.STRING, "interaction", "blackjack interaction", true);
         blackjackOption.addChoice("new", "new");
@@ -80,8 +80,7 @@ public class IanBot {
         return blackjackCommand;
     }
 
-    @NotNull
-    private static CommandDataImpl getSayCommand() {
+    private CommandDataImpl getSayCommand() {
         CommandDataImpl sayCommand = new CommandDataImpl(SAY_COMMAND, "say something");
         OptionData sayOption = new OptionData(OptionType.STRING, "say", "what to say", true);
         sayCommand.addOptions(sayOption);

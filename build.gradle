@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.2.0'
+    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 group 'org.example'
@@ -9,10 +11,18 @@ repositories {
     mavenCentral()
 }
 
-def jdaVersion = '5.2.2'
+ext {
+    set('springBootVersion', '3.2.0')
+    set('jdaVersion', '5.2.2')
+}
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.13.1'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // JDA Discord Bot
     implementation("net.dv8tion:JDA:$jdaVersion") {
         // Optionally disable audio natives to reduce jar size by excluding `opus-java`
         // Gradle DSL:
@@ -20,5 +30,13 @@ dependencies {
         // Kotlin DSL:
         // exclude(module="opus-java")
     }
-    implementation 'org.mongodb:mongodb-driver-sync:5.2.1'
+
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // For JDA event handling and annotations
+    implementation 'org.springframework:spring-context'
+
+    // Required for javax.annotation.PostConstruct
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
 }

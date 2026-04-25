@@ -1,6 +1,11 @@
 package com.ianscottbaker.ianbot;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
 public class Tokens {
     // Do not upload below token
-    public static final String ianBotToken = "putDiscordBotTokenHere";
+    @Value("${discord.token}")
+    public static String ianBotToken;
 }
