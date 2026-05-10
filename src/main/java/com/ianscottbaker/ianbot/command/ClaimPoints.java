@@ -1,26 +1,22 @@
 package com.ianscottbaker.ianbot.command;
 
 import com.ianscottbaker.ianbot.model.IBUser;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.UpdateOptions;
+import com.ianscottbaker.ianbot.repository.IBUserRepository;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Random;
 
+@Component
 public class ClaimPoints {
-    public static int MIN_CLAIM_POINTS = 5;
-    public static int MAX_CLAIM_POINTS = 10;
+    public static final int MIN_CLAIM_POINTS = 5;
+    public static final int MAX_CLAIM_POINTS = 10;
 
-    public static void execute(@NotNull SlashCommandInteractionEvent event,
-                               @NotNull IBUser ibUser,
-                               @NotNull MongoCollection<Document> userCollection,
-                               Document updateQuery,
-                               UpdateOptions updateOptions
-    ) {
+    public void execute(@NotNull SlashCommandInteractionEvent event,
+                        @NotNull IBUser ibUser,
+                        @NotNull IBUserRepository userRepository) {
         int currentTime = (int) Instant.now().getEpochSecond();
         int lastTime = ibUser.getLastFreeClaimTime();
         if (currentTime - lastTime < 86400) {
@@ -28,16 +24,15 @@ public class ClaimPoints {
             return;
         }
 
-        int currentPoints = ibUser.getPoints();
         Random random = new Random();
         int claimPoints = random.nextInt(MAX_CLAIM_POINTS - MIN_CLAIM_POINTS) + MIN_CLAIM_POINTS;
-        int newPoints = currentPoints + claimPoints;
+        int newPoints = ibUser.getPoints() + claimPoints;
 
         ibUser.setPoints(newPoints);
         ibUser.setLastFreeClaimTime(currentTime);
-        Bson updates = ibUser.getDatabaseUpdates();
-        userCollection.updateOne(updateQuery, updates, updateOptions);
+        userRepository.save(ibUser);
 
-        event.reply(String.format("You've claimed %d points! You now have %d points", claimPoints, newPoints)).setEphemeral(true).queue();
+        event.reply(String.format("You've claimed %d points! You now have %d points", claimPoints, newPoints))
+                .setEphemeral(true).queue();
     }
 }

@@ -1,9 +1,15 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.3.0'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+group = 'com.ianscottbaker'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
     mavenCentral()
@@ -12,13 +18,10 @@ repositories {
 def jdaVersion = '5.2.2'
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.13.1'
-    implementation("net.dv8tion:JDA:$jdaVersion") {
-        // Optionally disable audio natives to reduce jar size by excluding `opus-java`
-        // Gradle DSL:
-        // exclude module: 'opus-java'
-        // Kotlin DSL:
-        // exclude(module="opus-java")
-    }
-    implementation 'org.mongodb:mongodb-driver-sync:5.2.1'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    implementation("net.dv8tion:JDA:$jdaVersion")
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
