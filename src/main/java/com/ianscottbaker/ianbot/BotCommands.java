@@ -3,46 +3,45 @@ package com.ianscottbaker.ianbot;
 import com.ianscottbaker.ianbot.command.Blackjack;
 import com.ianscottbaker.ianbot.command.ClaimPoints;
 import com.ianscottbaker.ianbot.model.IBUser;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.UpdateOptions;
+import com.ianscottbaker.ianbot.service.UserService;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
-import static com.mongodb.client.model.Filters.eq;
+import java.util.Optional;
 
+@Component
 public class BotCommands extends ListenerAdapter {
-    public static String IANTEST_COMMAND = "iantest";
-    public static String SAY_COMMAND = "say";
-    public static String CLAIM_POINTS_COMMAND = "claim_points";
-    public static String BLACKJACK_COMMAND = "blackjack";
+    public static final String IANTEST_COMMAND = "iantest";
+    public static final String SAY_COMMAND = "say";
+    public static final String CLAIM_POINTS_COMMAND = "claim_points";
+    public static final String BLACKJACK_COMMAND = "blackjack";
+
+    private final UserService userService;
+    private final Blackjack blackjack;
+    private final ClaimPoints claimPoints;
+
+    public BotCommands(UserService userService, Blackjack blackjack, ClaimPoints claimPoints) {
+        this.userService = userService;
+        this.blackjack = blackjack;
+        this.claimPoints = claimPoints;
+    }
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String eventUserName = event.getUser().getGlobalName();
         String eventUserId = event.getUser().getId();
-        MongoCollection<Document> userCollection = IanBot.mongoClient.getDatabase("ianbot").getCollection("user");
-        Document rawDatabaseUser = userCollection.find(eq("discordId", eventUserId)).first();
-        IBUser ibUser = null;
-        if (rawDatabaseUser == null) {
-            // No user found, insert a new user in the database
-            ibUser = new IBUser(eventUserId);
-        } else {
-            ibUser = new IBUser(rawDatabaseUser);
-        }
-        // Query and options for updating/inserting user in/into database
-        Document updateQuery = new Document().append("discordId", eventUserId);
-        // Instructs the driver to insert a new document if none match the query
-        UpdateOptions updateOptions = new UpdateOptions().upsert(true);
 
         if (event.getName().equals(IANTEST_COMMAND)) {
-            if (rawDatabaseUser == null) {
-                event.reply(String.format("name: %s, id: %s, points: %d", eventUserName, eventUserId, ibUser.getPoints())).setEphemeral(true).queue();
-            } else {
-                event.reply(String.format("name: %s, id: %s, points: %d, mongoDB JSON: %s", eventUserName, eventUserId, ibUser.getPoints(), rawDatabaseUser.toJson())).setEphemeral(true).queue();
-            }
+            Optional<IBUser> existing = userService.findExisting(eventUserId);
+            IBUser ibUser = existing.orElseGet(() -> new IBUser(eventUserId));
+            String suffix = existing.isPresent() ? "existing" : "new";
+            event.reply(String.format(
+                    "name: %s, id: %s, points: %d, lastFreeClaimTime: %d (%s user)",
+                    eventUserName, eventUserId, ibUser.getPoints(), ibUser.getLastFreeClaimTime(), suffix
+            )).setEphemeral(true).queue();
             return;
         } else if (event.getName().equals(SAY_COMMAND)) {
             OptionMapping sayMapping = event.getOption("say");
@@ -50,14 +49,16 @@ public class BotCommands extends ListenerAdapter {
                 event.reply("Please provide a valid say command").setEphemeral(true).queue();
                 return;
             }
-            String say = sayMapping.getAsString();
-            event.reply(say).setEphemeral(false).queue();
+            event.reply(sayMapping.getAsString()).setEphemeral(false).queue();
             return;
-        } else if (event.getName().equals(CLAIM_POINTS_COMMAND)) {
-            ClaimPoints.execute(event, ibUser, userCollection, updateQuery, updateOptions);
+        }
+
+        IBUser ibUser = userService.getOrCreate(eventUserId);
+        if (event.getName().equals(CLAIM_POINTS_COMMAND)) {
+            claimPoints.execute(event, ibUser);
             return;
         } else if (event.getName().equals(BLACKJACK_COMMAND)) {
-            Blackjack.execute(event, ibUser, userCollection, updateQuery, updateOptions);
+            blackjack.execute(event, ibUser);
             return;
         }
         event.reply("Something went wrong!").setEphemeral(true).queue();
