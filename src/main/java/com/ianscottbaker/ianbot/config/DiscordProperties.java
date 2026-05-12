@@ -4,15 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "discord")
 public class DiscordProperties {
-    private String botToken;
     private Guilds guilds = new Guilds();
 
-    public String getBotToken() {
-        return botToken;
-    }
-    public void setBotToken(String botToken) {
-        this.botToken = botToken;
-    }
     public Guilds getGuilds() {
         return guilds;
     }

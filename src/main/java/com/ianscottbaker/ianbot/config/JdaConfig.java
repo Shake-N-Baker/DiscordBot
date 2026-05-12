@@ -15,11 +15,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Properties;
 
 @Configuration
 public class JdaConfig {
     private static final Logger log = LoggerFactory.getLogger(JdaConfig.class);
+    private static final String TOKEN_KEY = "DISCORD_BOT_TOKEN";
+    private static final Path DOTENV_PATH = Path.of(".env");
 
     private final DiscordProperties discordProperties;
 
@@ -29,16 +36,38 @@ public class JdaConfig {
 
     @Bean(destroyMethod = "shutdown")
     public JDA jda(BotCommands botCommands, ButtonInteractions buttonInteractions) throws InterruptedException {
-        String token = discordProperties.getBotToken();
-        if (token == null || token.isBlank()) {
-            throw new IllegalStateException(
-                    "Discord bot token is not set. Provide it via the DISCORD_BOT_TOKEN environment variable, " +
-                            "or copy .env.template to .env and fill it in.");
-        }
+        String token = resolveDiscordToken();
         return JDABuilder.createDefault(token)
                 .addEventListeners(botCommands, buttonInteractions)
                 .build()
                 .awaitReady();
+    }
+
+    private String resolveDiscordToken() {
+        String envToken = System.getenv(TOKEN_KEY);
+        if (envToken != null && !envToken.isBlank()) {
+            log.info("Discord token resolved from environment variable {}", TOKEN_KEY);
+            return envToken;
+        }
+
+        Path envPath = DOTENV_PATH.toAbsolutePath();
+        if (Files.isReadable(envPath)) {
+            Properties props = new Properties();
+            try (InputStream in = Files.newInputStream(envPath)) {
+                props.load(in);
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to read " + envPath + ": " + e.getMessage(), e);
+            }
+            String fileToken = props.getProperty(TOKEN_KEY);
+            if (fileToken != null && !fileToken.isBlank()) {
+                log.info("Discord token resolved from {}", envPath);
+                return fileToken;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Discord bot token is not set. Provide it via the " + TOKEN_KEY +
+                        " environment variable, or copy .env.template to .env (at " + envPath + ") and fill in " + TOKEN_KEY + ".");
     }
 
     @EventListener(ApplicationReadyEvent.class)
