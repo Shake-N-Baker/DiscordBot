@@ -3,7 +3,9 @@ package com.ianscottbaker.ianbot;
 import com.ianscottbaker.ianbot.command.Blackjack;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ButtonInteractions extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
