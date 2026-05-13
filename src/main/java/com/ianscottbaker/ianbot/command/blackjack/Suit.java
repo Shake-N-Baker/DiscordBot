@@ -1,10 +1,10 @@
 package com.ianscottbaker.ianbot.command.blackjack;
 
 public enum Suit {
-    CLUBS("♣"),
-    DIAMONDS("♦"),
-    HEARTS("♥"),
-    SPADES("♠");
+    CLUBS(":club_suit:"),
+    DIAMONDS(":diamond_suit:"),
+    HEARTS(":heart_suit:"),
+    SPADES(":spade_suit:");
 
     private final String symbol;
 

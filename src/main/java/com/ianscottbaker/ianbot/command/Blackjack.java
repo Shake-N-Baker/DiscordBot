@@ -196,7 +196,7 @@ public class Blackjack implements SlashCommand, ButtonHandler, ModalHandler {
     }
 
     private MessageCreateData renderInProgress(BlackjackGame game, int currentPoints) {
-        String dealerLine = String.format("Dealer: %s 🂠", game.getDealerHand().get(0).label());
+        String dealerLine = String.format("Dealer: %s :joker:", game.getDealerHand().get(0).label());
         String playerLine = String.format("You: %s (%d)", cardsString(game.getPlayerHand()), blackjackService.handValue(game.getPlayerHand()));
         String body = String.format("%s%n%s%n%nBet: %d   Points: %d", dealerLine, playerLine, game.getBet(), currentPoints);
 
