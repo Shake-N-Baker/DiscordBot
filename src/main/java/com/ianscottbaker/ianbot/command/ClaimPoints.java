@@ -3,14 +3,16 @@ package com.ianscottbaker.ianbot.command;
 import com.ianscottbaker.ianbot.model.IBUser;
 import com.ianscottbaker.ianbot.service.UserService;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import org.jetbrains.annotations.NotNull;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Random;
 
 @Service
-public class ClaimPoints {
+public class ClaimPoints implements SlashCommand {
+    public static final String NAME = "claim_points";
     public static final int MIN_CLAIM_POINTS = 5;
     public static final int MAX_CLAIM_POINTS = 10;
 
@@ -21,7 +23,14 @@ public class ClaimPoints {
         this.userService = userService;
     }
 
-    public void execute(@NotNull SlashCommandInteractionEvent event, @NotNull IBUser ibUser) {
+    @Override
+    public SlashCommandData getCommandData() {
+        return Commands.slash(NAME, "claim free points once a day");
+    }
+
+    @Override
+    public void execute(SlashCommandInteractionEvent event) {
+        IBUser ibUser = userService.getOrCreate(event.getUser().getId());
         int currentTime = (int) Instant.now().getEpochSecond();
         int lastTime = ibUser.getLastFreeClaimTime();
         if (currentTime - lastTime < 86400) {
