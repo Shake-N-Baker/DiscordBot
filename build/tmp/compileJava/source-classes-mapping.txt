@@ -1,4 +1,0 @@
-com/ianscottbaker/ianbot/commands/BotCommands.java
- com.ianscottbaker.ianbot.commands.BotCommands
-com/ianscottbaker/ianbot/IanBot.java
- com.ianscottbaker.ianbot.IanBot

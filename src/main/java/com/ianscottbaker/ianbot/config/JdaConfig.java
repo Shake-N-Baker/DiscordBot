@@ -2,12 +2,11 @@ package com.ianscottbaker.ianbot.config;
 
 import com.ianscottbaker.ianbot.BotCommands;
 import com.ianscottbaker.ianbot.ButtonInteractions;
+import com.ianscottbaker.ianbot.command.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.internal.interactions.CommandDataImpl;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -29,9 +28,11 @@ public class JdaConfig {
     private static final Path DOTENV_PATH = Path.of(".env");
 
     private final DiscordProperties discordProperties;
+    private final List<SlashCommand> commands;
 
-    public JdaConfig(DiscordProperties discordProperties) {
+    public JdaConfig(DiscordProperties discordProperties, List<SlashCommand> commands) {
         this.discordProperties = discordProperties;
+        this.commands = commands;
     }
 
     @Bean(destroyMethod = "shutdown")
@@ -73,12 +74,12 @@ public class JdaConfig {
     @EventListener(ApplicationReadyEvent.class)
     public void registerSlashCommands(ApplicationReadyEvent event) {
         JDA jda = event.getApplicationContext().getBean(JDA.class);
-        List<CommandDataImpl> commands = buildCommands();
-        registerForGuild(jda, discordProperties.getGuilds().getTestId(), commands, "test");
-        registerForGuild(jda, discordProperties.getGuilds().getFuzzyId(), commands, "fuzzy");
+        List<SlashCommandData> commandData = commands.stream().map(SlashCommand::getCommandData).toList();
+        registerForGuild(jda, discordProperties.getGuilds().getTestId(), commandData, "test");
+        registerForGuild(jda, discordProperties.getGuilds().getFuzzyId(), commandData, "fuzzy");
     }
 
-    private void registerForGuild(JDA jda, String guildId, List<CommandDataImpl> commands, String label) {
+    private void registerForGuild(JDA jda, String guildId, List<SlashCommandData> commandData, String label) {
         if (guildId == null || guildId.isBlank()) {
             return;
         }
@@ -87,34 +88,6 @@ public class JdaConfig {
             log.warn("{} guild {} not found, skipping slash command registration", label, guildId);
             return;
         }
-        guild.updateCommands().addCommands(commands).queue();
-    }
-
-    private List<CommandDataImpl> buildCommands() {
-        return List.of(
-                new CommandDataImpl(BotCommands.IANTEST_COMMAND, "debug command"),
-                new CommandDataImpl(BotCommands.CLAIM_POINTS_COMMAND, "claim free points once a day"),
-                buildBlackjackCommand(),
-                buildSayCommand());
-    }
-
-    private CommandDataImpl buildBlackjackCommand() {
-        CommandDataImpl blackjackCommand = new CommandDataImpl(BotCommands.BLACKJACK_COMMAND, "play blackjack");
-        OptionData blackjackOption = new OptionData(OptionType.STRING, "interaction", "blackjack interaction", true);
-        blackjackOption.addChoice("new", "new");
-        blackjackOption.addChoice("stats", "stats");
-        blackjackOption.addChoice("hit", "hit");
-        blackjackOption.addChoice("stand", "stand");
-        blackjackOption.addChoice("double", "double");
-        blackjackOption.addChoice("split", "split");
-        blackjackCommand.addOptions(blackjackOption);
-        return blackjackCommand;
-    }
-
-    private CommandDataImpl buildSayCommand() {
-        CommandDataImpl sayCommand = new CommandDataImpl(BotCommands.SAY_COMMAND, "say something");
-        OptionData sayOption = new OptionData(OptionType.STRING, "say", "what to say", true);
-        sayCommand.addOptions(sayOption);
-        return sayCommand;
+        guild.updateCommands().addCommands(commandData).queue();
     }
 }
