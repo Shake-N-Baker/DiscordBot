@@ -2,6 +2,7 @@ package com.ianscottbaker.ianbot.config;
 
 import com.ianscottbaker.ianbot.BotCommands;
 import com.ianscottbaker.ianbot.ButtonInteractions;
+import com.ianscottbaker.ianbot.ModalInteractions;
 import com.ianscottbaker.ianbot.command.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -36,10 +37,10 @@ public class JdaConfig {
     }
 
     @Bean(destroyMethod = "shutdown")
-    public JDA jda(BotCommands botCommands, ButtonInteractions buttonInteractions) throws InterruptedException {
+    public JDA jda(BotCommands botCommands, ButtonInteractions buttonInteractions, ModalInteractions modalInteractions) throws InterruptedException {
         String token = resolveDiscordToken();
         return JDABuilder.createDefault(token)
-                .addEventListeners(botCommands, buttonInteractions)
+                .addEventListeners(botCommands, buttonInteractions, modalInteractions)
                 .build()
                 .awaitReady();
     }
