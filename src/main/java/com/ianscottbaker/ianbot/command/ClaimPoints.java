@@ -15,6 +15,7 @@ public class ClaimPoints implements SlashCommand {
     public static final String NAME = "claim_points";
     public static final int MIN_CLAIM_POINTS = 5;
     public static final int MAX_CLAIM_POINTS = 10;
+    private static final int CLAIM_COOLDOWN_SECONDS = 86400;
 
     private final UserService userService;
     private final Random random = new Random();
@@ -33,8 +34,8 @@ public class ClaimPoints implements SlashCommand {
         IBUser ibUser = userService.getOrCreate(event.getUser().getId());
         int currentTime = (int) Instant.now().getEpochSecond();
         int lastTime = ibUser.getLastFreeClaimTime();
-        if (currentTime - lastTime < 86400) {
-            event.reply("You can not claim any more points today, try again tomorrow!").setEphemeral(true).queue();
+        if (currentTime - lastTime < CLAIM_COOLDOWN_SECONDS) {
+            event.reply(String.format("You can not claim any more points, try again in %d seconds", (CLAIM_COOLDOWN_SECONDS - (currentTime - lastTime)))).setEphemeral(true).queue();
             return;
         }
 
