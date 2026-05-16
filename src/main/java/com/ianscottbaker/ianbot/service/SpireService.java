@@ -98,7 +98,7 @@ public class SpireService {
     private List<EnemyInstance> buildEnemies(SpireRun run) {
         List<EnemyInstance> enemies = new ArrayList<>();
         if (Floor.forNumber(run.getCurrentFloor()) == Floor.BOSS) {
-            enemies.add(new EnemyInstance(SpireEnemy.WARDEN));
+            enemies.add(new EnemyInstance(SpireEnemy.TADPOLE_THE_TERRIBLE));
             return enemies;
         }
         SpireEnemy.Tier tier = run.getCurrentFloor() < Floor.REST_FLOOR
