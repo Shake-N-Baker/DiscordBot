@@ -24,18 +24,18 @@ public enum SpireEnemy {
 
     // --- Hard tier (floors 5-7) ---
     SLAVER("Slaver", 38, Tier.HARD, List.of(
-            Intent.of(Intent.Type.ATTACK, 11),
+            Intent.of(Intent.Type.ATTACK, 8),
             Intent.of(Intent.Type.APPLY_VULNERABLE, 2),
-            Intent.of(Intent.Type.ATTACK, 11),
+            Intent.of(Intent.Type.ATTACK, 8),
             Intent.of(Intent.Type.APPLY_WEAK, 2))),
     SENTRY("Sentry", 30, Tier.HARD, List.of(
             Intent.of(Intent.Type.BLOCK, 8),
             Intent.of(Intent.Type.WINDUP, 0),
-            Intent.of(Intent.Type.NUKE, 26))),
+            Intent.of(Intent.Type.NUKE, 22))),
     BRUTE("Brute", 46, Tier.HARD, List.of(
             Intent.of(Intent.Type.BUFF_STRENGTH, 3),
-            Intent.of(Intent.Type.ATTACK, 16),
-            Intent.of(Intent.Type.ATTACK, 16))),
+            Intent.of(Intent.Type.ATTACK, 10),
+            Intent.of(Intent.Type.ATTACK, 10))),
 
     // --- Boss (floor 8) ---
     WARDEN("The Warden", 80, Tier.BOSS, List.of());

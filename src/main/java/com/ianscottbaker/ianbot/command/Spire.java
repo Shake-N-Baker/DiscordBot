@@ -504,7 +504,7 @@ public class Spire implements SlashCommand, ButtonHandler {
         for (StatusEffect effect : StatusEffect.values()) {
             int value = spireService.statusOf(e.getEffects(), effect);
             if (value != 0) {
-                if (sb.length() > 0) {
+                if (!sb.isEmpty()) {
                     sb.append(' ');
                 }
                 sb.append('[').append(effect.getLabel()).append(' ').append(value).append(']');
