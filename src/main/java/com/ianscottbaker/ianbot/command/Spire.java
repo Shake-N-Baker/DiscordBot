@@ -334,7 +334,10 @@ public class Spire implements SlashCommand, ButtonHandler {
         StringBuilder body = new StringBuilder();
         body.append(String.format("=== Floor %d/%d - Combat ===%n", run.getCurrentFloor(), 8));
 
-        for (EnemyInstance e : s.getEnemies()) {
+        // Rendered back-to-front: the front enemy (list index 0) prints last, nearest "You".
+        List<EnemyInstance> enemies = s.getEnemies();
+        for (int i = enemies.size() - 1; i >= 0; i--) {
+            EnemyInstance e = enemies.get(i);
             String statuses = enemyStatusLabel(e);
             body.append(String.format("%-12s HP %d/%d%s  -> %s%n",
                     e.getEnemyType().getDisplayName(),

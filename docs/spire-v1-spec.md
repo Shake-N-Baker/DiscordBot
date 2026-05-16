@@ -68,8 +68,8 @@ Out (deferred to v2+):
 | Name | Type | Behavior |
 |---|---|---|
 | Block | Resource | Absorbs incoming attack damage. Resets to 0 at start of holder's turn. |
-| Vulnerable | Debuff | Holder takes +50% damage from attacks. Ticks down by 1 stack at end of holder's turn. |
-| Weak | Debuff | Holder deals -25% damage with attacks. Ticks down by 1 stack at end of holder's turn. |
+| Vulnerable | Debuff | Holder takes +50% damage from attacks. N stacks last N turns of being attacked; a stack applied mid-turn isn't spent until the next turn. |
+| Weak | Debuff | Holder deals -25% damage with attacks. N stacks last N of the holder's attacking turns; a stack applied mid-turn isn't spent until the next turn. |
 | Strength | Buff | +1 damage per stack on attacks the holder deals. Persistent (no decay). |
 
 Status effects exist on both players and enemies using the same model.
@@ -233,10 +233,12 @@ Implementation pattern:
 
 ### Combat message layout
 
+Enemies are listed back-to-front: the front enemy (list position 1) renders last, directly above "You".
+
 ```
 === Floor 5 - Combat ===
-Cultist  HP 22/40  -> Attack 8
 Slaver   HP 12/20  -> Apply Vulnerable 2
+Cultist  HP 22/40  -> Attack 8
 
 You  HP 53/80  [Block 0] [Vuln 2]
 Energy 6/6

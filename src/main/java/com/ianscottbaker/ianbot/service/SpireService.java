@@ -157,7 +157,6 @@ public class SpireService {
     public void endPlayerTurn(SpireRun run, CombatState s) {
         s.getDiscardPile().addAll(s.getHand());
         s.getHand().clear();
-        decay(s.getPlayerEffects());
         resolveEnemyTurn(run, s);
         if (run.getPlayerHp() > 0 && !s.getEnemies().isEmpty()) {
             startPlayerTurn(run, s);
@@ -169,6 +168,11 @@ public class SpireService {
         for (EnemyInstance e : s.getEnemies()) {
             e.getEffects().put(StatusEffect.BLOCK, 0);
         }
+        // Snapshot the player's debuffs before the enemy turn: only stacks that
+        // pre-date the turn tick down afterwards, so a Vulnerable/Weak an enemy
+        // lands this turn keeps its full value into the player's next turn.
+        int preVulnerable = statusOf(s.getPlayerEffects(), StatusEffect.VULNERABLE);
+        int preWeak = statusOf(s.getPlayerEffects(), StatusEffect.WEAK);
         for (EnemyInstance e : new ArrayList<>(s.getEnemies())) {
             if (run.getPlayerHp() <= 0) {
                 break;
@@ -183,6 +187,7 @@ public class SpireService {
                 decay(e.getEffects());
                 advanceIntent(run, s, e);
             }
+            decayPlayerDebuffs(s, preVulnerable, preWeak);
         }
     }
 
@@ -431,6 +436,23 @@ public class SpireService {
         }
     }
 
+    /**
+     * Ticks the player's Vulnerable/Weak down by one stack each at the end of the
+     * enemy turn — but only stacks that pre-dated the turn ({@code preVulnerable} /
+     * {@code preWeak}), so a debuff an enemy lands this turn isn't spent before it
+     * has had a turn to bite. Vulnerable N thus boosts a full N enemy turns,
+     * mirroring how enemy-held Vulnerable behaves.
+     */
+    private void decayPlayerDebuffs(CombatState s, int preVulnerable, int preWeak) {
+        Map<StatusEffect, Integer> effects = s.getPlayerEffects();
+        if (preVulnerable > 0) {
+            effects.put(StatusEffect.VULNERABLE, statusOf(effects, StatusEffect.VULNERABLE) - 1);
+        }
+        if (preWeak > 0) {
+            effects.put(StatusEffect.WEAK, statusOf(effects, StatusEffect.WEAK) - 1);
+        }
+    }
+
     public int statusOf(Map<StatusEffect, Integer> effects, StatusEffect effect) {
         return effects.getOrDefault(effect, 0);
     }
@@ -450,8 +472,10 @@ public class SpireService {
             return "...";
         }
         return switch (intent.getType()) {
-            case ATTACK -> "Attack " + computeAttackDamage(intent.getValue(), e.getEffects(), s.getPlayerEffects());
-            case NUKE -> "NUKE " + computeAttackDamage(intent.getValue(), e.getEffects(), s.getPlayerEffects());
+            case ATTACK -> "Attack " + computeAttackDamage(intent.getValue(), e.getEffects(), s.getPlayerEffects())
+                    + attackModifierTags(e, s);
+            case NUKE -> "NUKE " + computeAttackDamage(intent.getValue(), e.getEffects(), s.getPlayerEffects())
+                    + attackModifierTags(e, s);
             case BLOCK -> "Block " + intent.getValue();
             case BUFF_STRENGTH -> "Buff +" + intent.getValue() + " Strength";
             case APPLY_VULNERABLE -> "Apply Vulnerable " + intent.getValue();
@@ -459,6 +483,22 @@ public class SpireService {
             case HEAL -> "Heal " + intent.getValue();
             case WINDUP -> "Charging up...";
         };
+    }
+
+    /**
+     * Parenthetical naming the modifiers folded into a displayed attack number —
+     * the attacker's Weak and the player's Vulnerable — so a reduced or boosted
+     * value is visibly so. Empty when the attack is unmodified.
+     */
+    private String attackModifierTags(EnemyInstance attacker, CombatState s) {
+        List<String> tags = new ArrayList<>();
+        if (statusOf(attacker.getEffects(), StatusEffect.WEAK) > 0) {
+            tags.add("weak");
+        }
+        if (statusOf(s.getPlayerEffects(), StatusEffect.VULNERABLE) > 0) {
+            tags.add("vuln");
+        }
+        return tags.isEmpty() ? "" : " (" + String.join(", ", tags) + ")";
     }
 
     // ------------------------------------------------------------------
