@@ -395,6 +395,23 @@ public class SpireService {
         }
     }
 
+    /**
+     * Strikes the front enemy for {@code base}, then applies {@code vulnerable}
+     * Vulnerable to it. The damage is computed before the Vulnerable lands, so the
+     * hit itself isn't self-amplified; if the hit kills the enemy the Vulnerable is
+     * dropped rather than sliding onto whoever moves up to the front.
+     */
+    public void dealDamageAndVulnerableToFront(CombatState s, int base, int vulnerable) {
+        EnemyInstance front = frontEnemy(s);
+        if (front == null) {
+            return;
+        }
+        damageEnemy(s, front, base);
+        if (front.isAlive()) {
+            addEffect(front.getEffects(), StatusEffect.VULNERABLE, vulnerable);
+        }
+    }
+
     public void applyWeakToAll(CombatState s, int stacks) {
         for (EnemyInstance e : s.getEnemies()) {
             addEffect(e.getEffects(), StatusEffect.WEAK, stacks);
