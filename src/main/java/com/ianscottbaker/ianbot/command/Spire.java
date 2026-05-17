@@ -2,6 +2,7 @@ package com.ianscottbaker.ianbot.command;
 
 import com.ianscottbaker.ianbot.command.spire.CombatState;
 import com.ianscottbaker.ianbot.command.spire.EnemyInstance;
+import com.ianscottbaker.ianbot.command.spire.Floor;
 import com.ianscottbaker.ianbot.command.spire.Phase;
 import com.ianscottbaker.ianbot.command.spire.SpireCard;
 import com.ianscottbaker.ianbot.command.spire.SpireRun;
@@ -332,7 +333,7 @@ public class Spire implements SlashCommand, ButtonHandler {
         CombatState s = run.getCombatState();
         String owner = run.getDiscordId();
         StringBuilder body = new StringBuilder();
-        body.append(String.format("=== Floor %d/%d - Combat ===%n", run.getCurrentFloor(), 8));
+        body.append(String.format("=== Floor %d/%d - Combat ===%n", run.getCurrentFloor(), Floor.TOTAL_FLOORS));
 
         // Rendered back-to-front: the front enemy (list index 0) prints last, nearest "You".
         List<EnemyInstance> enemies = s.getEnemies();
@@ -474,7 +475,7 @@ public class Spire implements SlashCommand, ButtonHandler {
         String body = String.format(
                 "You have a Spire run in progress.%nFloor %d/%d - %s%nHP %d/%d%n%n"
                         + "Continue where you left off, or abandon this run?",
-                run.getCurrentFloor(), 8, phaseText, run.getPlayerHp(), run.getPlayerMaxHp());
+                run.getCurrentFloor(), Floor.TOTAL_FLOORS, phaseText, run.getPlayerHp(), run.getPlayerMaxHp());
         return new MessageCreateBuilder()
                 .addContent(codeBlock(body))
                 .setComponents(ActionRow.of(

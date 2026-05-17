@@ -111,6 +111,11 @@ public class SpireService {
         int easyCount = 1;
         int hardCount = 0;
         switch (run.getCurrentFloor()) {
+            case 4:
+            case 8: // Rest floors
+                easyCount = 0;
+                hardCount = 0;
+                break;
             case 1:
                 easyCount = 1;
                 hardCount = 0;
@@ -121,10 +126,6 @@ public class SpireService {
                 break;
             case 3:
                 easyCount = 2 + rng.nextInt(1);
-                hardCount = 0;
-                break;
-            case 4:
-                easyCount = 0;
                 hardCount = 0;
                 break;
             case 5:

@@ -37,7 +37,7 @@ public enum SpireEnemy {
             Intent.of(Intent.Type.ATTACK, 10),
             Intent.of(Intent.Type.ATTACK, 10))),
 
-    // --- Boss (floor 8) ---
+    // --- Boss (floor 9) ---
     TADPOLE_THE_TERRIBLE("Tadpole The Terrible", 100, Tier.BOSS, List.of());
 
     public enum Tier {

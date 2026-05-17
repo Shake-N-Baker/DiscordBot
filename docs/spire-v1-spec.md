@@ -7,7 +7,7 @@ A mini Slay-the-Spire-like roguelike deckbuilder, played via `/spire` in Discord
 In:
 - Card-play combat with energy/hand/turn loop
 - Deck-building between fights (card rewards, card removal)
-- A linear 8-floor run with one boss
+- A linear 9-floor run with one boss
 - One character (no class selection)
 - Status effects: Block, Vulnerable, Weak, Strength
 - Status effects apply to both player and enemies
@@ -95,8 +95,8 @@ Status effects exist on both players and enemies using the same model.
 ### Deck-building loop
 
 - After every regular combat (floors 1-3 and 5-7), the player gets a 1-of-3 random card pick from the card pool, with the option to skip.
-- After the boss (floor 8), no card reward — run is complete.
-- The rest site at floor 4 lets the player either heal 30% of max HP or remove one card from their master deck.
+- After the boss (floor 9), no card reward — run is complete.
+- The rest sites at floors 4 and 8 each let the player either heal 30% of max HP or remove one card from their master deck.
 - No card upgrades in v1.
 
 ### Deck management between fights
@@ -109,7 +109,7 @@ Status effects exist on both players and enemies using the same model.
 
 ## Run structure
 
-8 floors, linear, randomized content:
+9 floors, linear, randomized content:
 
 | Floor | Type | Notes |
 |---|---|---|
@@ -120,11 +120,12 @@ Status effects exist on both players and enemies using the same model.
 | 5 | Combat | Hard tier (2-4 enemies, scaling HP) |
 | 6 | Combat | Hard tier |
 | 7 | Combat | Hard tier |
-| 8 | Boss | Single phase-shift boss |
+| 8 | Rest site | Heal 30% HP OR remove a card |
+| 9 | Boss | Single phase-shift boss |
 
 - Enemy composition for each combat floor is drawn randomly from the tier pool.
 - Card-reward offerings are drawn randomly from the card pool.
-- Rest site is fixed at floor 4.
+- Rest sites are fixed at floors 4 and 8.
 - Randomization is seeded per run (see Persistence).
 
 ## Enemies
@@ -342,17 +343,17 @@ service/
         |
         | (pick or skip)
         v
-  floor++ ----- if floor == 4 ----> REST_CHOICE
+  floor++ ----- if floor is 4 or 8 ----> REST_CHOICE
         |                                |
-        | else                           +--- [Heal 30%] -> COMBAT (floor 5)
+        | else                           +--- [Heal 30%] -> COMBAT (next floor)
         v                                |
        COMBAT (next floor)               +--- [Remove a card] -> CARD_REMOVAL
                                                  |
-                                                 +--- (pick a card) -> COMBAT (floor 5)
+                                                 +--- (pick a card) -> COMBAT (next floor)
                                                  +--- (cancel) -> REST_CHOICE
 ```
 
-Boss floor 8: COMBAT ends on boss death -> award +50 points -> delete run -> show victory message.
+Boss floor 9: COMBAT ends on boss death -> award +50 points -> delete run -> show victory message.
 
 ## Implementation notes
 

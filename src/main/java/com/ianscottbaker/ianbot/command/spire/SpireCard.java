@@ -39,8 +39,8 @@ public enum SpireCard {
             SpireService::dropkick),
 
     // --- Skills ---
-    DEFEND("Defend", 2, CardType.SKILL, "Gain 5 Block.",
-            (e, s) -> e.gainBlock(s, 5)),
+    DEFEND("Defend", 2, CardType.SKILL, "Gain 6 Block.",
+            (e, s) -> e.gainBlock(s, 6)),
     HEAVY_DEFEND("Heavy Defend", 3, CardType.SKILL, "Gain 11 Block.",
             (e, s) -> e.gainBlock(s, 11)),
     SHRUG_IT_OFF("Shrug It Off", 2, CardType.SKILL, "Gain 6 Block. Draw 1 card.",
