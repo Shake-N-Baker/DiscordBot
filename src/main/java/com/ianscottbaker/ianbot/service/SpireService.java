@@ -101,17 +101,50 @@ public class SpireService {
             enemies.add(new EnemyInstance(SpireEnemy.TADPOLE_THE_TERRIBLE));
             return enemies;
         }
-        SpireEnemy.Tier tier = run.getCurrentFloor() < Floor.REST_FLOOR
-                ? SpireEnemy.Tier.EASY
-                : SpireEnemy.Tier.HARD;
-        List<SpireEnemy> pool = Arrays.stream(SpireEnemy.values())
-                .filter(e -> e.getTier() == tier)
-                .toList();
         Random rng = rng(run, Decision.ENEMY_COMP);
-        int count = tier == SpireEnemy.Tier.EASY ? 1 + rng.nextInt(2) : 2 + rng.nextInt(3);
-        count = Math.min(count, 5);
-        for (int i = 0; i < count; i++) {
-            enemies.add(new EnemyInstance(pool.get(rng.nextInt(pool.size()))));
+        List<SpireEnemy> easyPool = Arrays.stream(SpireEnemy.values())
+                .filter(e -> e.getTier() == SpireEnemy.Tier.EASY)
+                .toList();
+        List<SpireEnemy> hardPool = Arrays.stream(SpireEnemy.values())
+                .filter(e -> e.getTier() == SpireEnemy.Tier.HARD)
+                .toList();
+        int easyCount = 1;
+        int hardCount = 0;
+        switch (run.getCurrentFloor()) {
+            case 1:
+                easyCount = 1;
+                hardCount = 0;
+                break;
+            case 2:
+                easyCount = 1 + rng.nextInt(1);
+                hardCount = 0;
+                break;
+            case 3:
+                easyCount = 2 + rng.nextInt(1);
+                hardCount = 0;
+                break;
+            case 4:
+                easyCount = 0;
+                hardCount = 0;
+                break;
+            case 5:
+                easyCount = 0;
+                hardCount = 2;
+                break;
+            case 6:
+                easyCount = 2;
+                hardCount = 1;
+                break;
+            case 7:
+                easyCount = 4 + rng.nextInt(1);
+                hardCount = 0;
+                break;
+        }
+        for (int i = 0; i < easyCount; i++) {
+            enemies.add(new EnemyInstance(easyPool.get(rng.nextInt(easyPool.size()))));
+        }
+        for (int i = 0; i < hardCount; i++) {
+            enemies.add(new EnemyInstance(hardPool.get(rng.nextInt(hardPool.size()))));
         }
         return enemies;
     }
