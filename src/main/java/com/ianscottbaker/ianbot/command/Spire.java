@@ -20,6 +20,8 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -34,8 +36,8 @@ import java.util.stream.Collectors;
  * logic lives in {@link SpireService}.
  *
  * <p>Game messages are public so friends can spectate. On every state change the
- * old message is deleted and a fresh one posted, keeping the game at the bottom
- * of the channel. Only the run owner may press buttons.
+ * current message is edited in place rather than reposted, so the game doesn't
+ * spam the channel. Only the run owner may press buttons.
  */
 @Service
 public class Spire implements SlashCommand, ButtonHandler {
@@ -552,26 +554,25 @@ public class Spire implements SlashCommand, ButtonHandler {
     }
 
     /**
-     * Delete-and-repost: acknowledge the button, remove the old game message(s),
-     * post a fresh one at the bottom of the channel, and persist its location.
+     * Edit the clicked message in place with the new game state. Also cleans up
+     * any stale tracked message (e.g. an orphaned in-progress message left over
+     * when the user reran {@code /spire} and got a continue prompt) and points
+     * the run at the message we just edited.
      */
     private void repost(ButtonInteractionEvent event, SpireRun run, MessageCreateData content) {
-        event.deferEdit().queue();
-        event.getMessage().delete().queue(ok -> { }, err -> { });
+        MessageEditData edit = MessageEditBuilder.fromCreateData(content).build();
+        event.editMessage(edit).queue();
         deleteStoredMessage(event, run);
-        event.getChannel().sendMessage(content).queue(msg -> {
-            run.setCurrentMessageId(msg.getId());
-            run.setCurrentChannelId(msg.getChannelId());
-            save(run);
-        });
+        run.setCurrentMessageId(event.getMessageId());
+        run.setCurrentChannelId(event.getChannelId());
+        save(run);
     }
 
     /** Final screen (death/victory) — run is already deleted, so nothing to persist. */
     private void postFinal(ButtonInteractionEvent event, SpireRun run, MessageCreateData content) {
-        event.deferEdit().queue();
-        event.getMessage().delete().queue(ok -> { }, err -> { });
+        MessageEditData edit = MessageEditBuilder.fromCreateData(content).build();
+        event.editMessage(edit).queue();
         deleteStoredMessage(event, run);
-        event.getChannel().sendMessage(content).queue();
     }
 
     /** Best-effort delete of the tracked game message when it isn't the one just clicked. */
